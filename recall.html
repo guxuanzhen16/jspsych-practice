@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset='utf-8'/>
+    <title>Reverse Recall Experiment</title>
+    <script src='jsPsych/jspsych.js'></script>
+    <script src='jsPsych/plugins/jspsych-image-button-response.js'></script>
+    <script src='jsPsych/plugins/jspsych-html-button-response.js'></script>
+    <script src='jsPsych/plugins/jspsych-html-keyboard-response.js'></script>
+    <script src='jsPsych/plugins/jspsych-survey-text.js'></script>
+    <link href='jsPsych/css/jspsych.css' rel='stylesheet' type='text/css'></link>
+  </head>
+  <body></body>
+  <script>
+    var timeline = [];
+
+    var welcome = {
+      type: 'html-button-response',
+      stimulus: '<img src="images/fbiuiu.png"></img><p><strong>Federal Bureau of Investigations</strong><br><strong>Unusual Incidents Unit</strong><br>Welcome.<br>This experiment tests for ESP by administering several tasks involving common everyday words.<br> The experiment takes about 5 minutes. <br>The program will give you specific instructions as you go. At the end of the session how the procedure tested for ESP will be explained.</p>',
+      choices: ['Continue']
+    };
+    timeline.push(welcome);
+
+    var instructions = {
+      type: 'html-button-response',
+      stimulus: '<p>For 3 seconds each, 20 words will be flashed across the screen one after the other. <br> Try to visualize an image corresponding to each word you see within your mind as clearly as possible for the duration of each word.</p>',
+      choices: ['Begin']
+    };
+    timeline.push(instructions);
+
+    var wordList = [    
+      { word: 'Curry', data: {word_categ: 'food'}},
+      { word: 'Ramen', data: {word_categ: 'food'}},
+      { word: 'Pasta', data: {word_categ: 'food'}},
+      { word: 'Rice', data: {word_categ: 'food'}},
+      { word: 'Burrito', data: {word_categ: 'food'}},
+      { word: 'Mouse', data: {word_categ: 'animal'}},
+      { word: 'Horse', data: {word_categ: 'animal'}},
+      { word: 'Pig', data: {word_categ: 'animal'}},
+      { word: 'Rabbit', data: {word_categ: 'animal'}},
+      { word: 'Cow', data: {word_categ: 'animal'}},
+      { word: 'Doctor', data: {word_categ: 'job'}},
+      { word: 'Nurse', data: {word_categ: 'job'}},
+      { word: 'Teacher', data: {word_categ: 'job'}},
+      { word: 'Miner', data: {word_categ: 'job'}},
+      { word: 'Sailor', data: {word_categ: 'job'}},
+      { word: 'Boots', data: {word_categ: 'clothing'}},
+      { word: 'Jacket', data: {word_categ: 'clothing'}},
+      { word: 'Hoodie', data: {word_categ: 'clothing'}},
+      { word: 'Earring', data: {word_categ: 'clothing'}},
+      { word: 'Glasses', data: {word_categ: 'clothing'}},
+    ];
+
+
+    // displays words randomly, each for 3 seconds
+    var visual_procedure = {
+      timeline: [{
+        type: 'html-keyboard-response',
+        stimulus: jsPsych.timelineVariable('word'),
+        choices: jsPsych.NO_KEYS,
+        trial_duration: 3000,
+        prompt: '<br><font size="-1" color="grey">Visualize an image of the word in your mind.</font>',
+      }],
+      timeline_variables: wordList,
+      randomize_order: true
+    }
+    timeline.push(visual_procedure);
+
+    var recall = {
+      type: 'survey-text',
+      questions: [{prompt: '', required: true}],
+      preamble: 'Please try to remember and type out the words you just saw, as many as you can. Please seperate words with commas.<br>Press enter to submit.',
+      data: {test_part: 'recall'},
+      required: true,
+      rows: 5,
+
+      post_trial_gap: 2000
+    }
+    timeline.push(recall);
+
+    // generates random array of 3 words for each category
+    // and converts them into objects jsPsych uses
+    const makeList = function generateListOfWords(category, list) {
+      var wList = [];
+      // extracts out list of chosen category
+      // changes word to object 'question'
+      for (var i = 0; i < list.length; i++) {
+        if (category == list[i].data.word_categ) {
+          let wordObj = {prompt: list[i].word, required: true, data: {word_categ: category}};
+          wList.push(wordObj);
+        }
+      }
+
+      // removes two random words leaving only 3
+      for (var x =0; x < 2 ; x++) {
+        wList.splice(Math.floor(Math.random() * (wList.length)),1);
+      }
+
+      // makes object out of array
+      var wListObj = { words: wList};
+
+      // returns new array
+      return wListObj;
+    }
+
+    // makes objects of words in one array
+    var allWordLists = [];
+    allWordLists.push(makeList('food', wordList));
+    allWordLists.push(makeList('animal', wordList));
+    allWordLists.push(makeList('job', wordList));
+    allWordLists.push(makeList('clothing', wordList));
+
+    // Displays generated lists, prompting to repeat in type
+    var typeOut = {
+      timeline: [{
+        type: 'survey-text',
+        questions: jsPsych.timelineVariable('words'),
+        preamble: 'Please type out the words that appear on the screen.<br>',
+        data: {test_part: 'typing'}
+      }],
+      timeline_variables: allWordLists
+    };
+    timeline.push(typeOut);
+
+    var end = {
+      type: 'html-button-response',
+      stimulus: '<img src="images/fbiuiu.png"></img><br>This experiment tested for <em> reverse memory recall </em> and if memorizing something <em> after </em> needing to recall it can help recollection in the past.<br>Your results will be analyzed to see if typing out some of the words after the fact helped you remember them. <br>Thank you for your participation.',
+      choices: ['Finish']
+    }
+    timeline.push(end);
+
+    jsPsych.init({
+      timeline: timeline,
+      on_finish: function(){
+        jsPsych.data.displayData();
+      }
+    });
+
+
+
+  </script>
+</html>
